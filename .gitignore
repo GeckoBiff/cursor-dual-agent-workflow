@@ -1,0 +1,14 @@
+# OS / editor 垃圾文件
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# 安装器临时产物（如果有人在仓库目录内跑过 install）
+*.bak
+*.orig
+
+# PowerShell transcript/log
+*.log

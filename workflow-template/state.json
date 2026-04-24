@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "task_title": "",
+  "current_phase": 0,
+  "total_phases": 0,
+  "status": "arch_design",
+  "last_actor": "none",
+  "last_event": "workflow_initialized",
+  "updated_at": "2026-04-24T00:00:00Z",
+  "notes": "",
+  "rework_items": []
+}

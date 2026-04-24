@@ -1,0 +1,56 @@
+---
+description: 本仓库的双 Agent 工作流状态机与交接协议（arch/coder 都必读）
+alwaysApply: true
+---
+
+# 双 Agent 工作流核心协议
+
+本仓库采用 **arch + coder** 双角色协作。工作流状态和文档存放在一个独立的"工作流目录"中，该目录的实际位置由 sessionStart hook 在上下文中告知，可能是：
+
+- `~/cursor-workflow/<项目名>/`（推荐：仓库外，不污染代码库）
+- 项目内 `docs/workflow/`（向后兼容）
+- 由环境变量 `CURSOR_WORKFLOW_DIR` 指定的路径
+
+无论在哪，目录结构固定包含：`state.json`、`ARCHITECTURE.md`、`PHASES.md`、`_templates/`，以及每阶段的 `phase-NN-{plan|review|summary}.md`。
+
+## 动作前后的强制步骤
+
+1. **每次任何动作前**，必须先读工作流目录下的 `state.json`。如果 sessionStart hook 已把状态注入上下文，优先使用注入的状态和路径。
+2. **确认自己是 arch 还是 coder**：用户通过 `@role-arch` / `@role-coder` 激活对应规则。如果两个角色规则都没激活，先问用户"你希望我以 arch 还是 coder 身份继续？"
+3. **动作后必须更新 `state.json`** 的 `status` / `last_actor` / `last_event` / `updated_at`。`updated_at` 用 ISO-8601 UTC。
+
+## 角色边界（硬约束）
+
+| 行为 | arch 可做 | coder 可做 |
+| ---- | --------- | ---------- |
+| 写/改 工作流目录下 `ARCHITECTURE.md` | ✅ | ❌ |
+| 写/改 工作流目录下 `PHASES.md` | ✅ | ❌ |
+| 写/改 工作流目录下 `phase-NN-plan.md` | ✅ | ❌ |
+| 写/改 工作流目录下 `phase-NN-review.md` | ✅ | ❌ |
+| 起草 工作流目录下 `phase-NN-summary.md`（status: draft） | ❌ | ✅ |
+| 定稿 工作流目录下 `phase-NN-summary.md`（status: finalized） | ✅ | ❌ |
+| 修改项目源代码 / 测试代码 | ❌ | ✅ |
+| 更新 `state.json` | ✅ | ✅ |
+
+违反角色边界必须停下并报告用户，**绝不**越权操作。
+
+## 文件命名与模板
+
+- phase 文件名必须是 `phase-NN-{plan|review|summary}.md`，NN 为两位零填充数字（`01`, `02`, …）
+- 新阶段文件一律从工作流目录下 `_templates/` 复制模板起稿
+
+## Review 结论格式（机器可读）
+
+`phase-NN-review.md` 头部 YAML frontmatter 必须包含 `verdict: APPROVED` 或 `verdict: REJECTED`。
+REJECTED 时，"## 3. 整改项" 段落下的每一条必须用 `- [ ] 具体整改动作` 的格式，hook 会自动解析到 `state.rework_items`。
+
+## 状态机允许的迁移
+
+```
+arch_design → phase_planning → ready_for_coding → coding
+  → awaiting_review → reviewing
+    → (APPROVED) phase_done → phase_planning | all_done
+    → (REJECTED) rework → coding
+```
+
+跳过状态必须在 `state.notes` 里写明原因。
