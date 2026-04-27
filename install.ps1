@@ -1,4 +1,4 @@
-# install.ps1 — 把本仓库内容部署到 ~/.cursor/ 对应位置
+﻿# install.ps1 — 把本仓库内容部署到 ~/.cursor/ 对应位置
 #
 # 用法：
 #   powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1

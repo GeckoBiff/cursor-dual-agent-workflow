@@ -1,4 +1,4 @@
-# uninstall.ps1 — 从 ~/.cursor/ 移除本框架安装的文件
+﻿# uninstall.ps1 — 从 ~/.cursor/ 移除本框架安装的文件
 #
 # 用法：
 #   powershell -NoProfile -ExecutionPolicy Bypass -File uninstall.ps1
